@@ -1,8 +1,8 @@
 import { Application } from 'stimulus'
 import { definitionsFromContext } from 'stimulus/webpack-helpers'
 import M from 'materialize-css'
-import 'materialize-css/sass/materialize.scss'
-import './style.sass'
+//import 'materialize-css/sass/materialize.scss'
+//import './style.sass'
 
 (() => {
   var Turbolinks = require('turbolinks')

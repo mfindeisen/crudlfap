@@ -49,7 +49,7 @@ module.exports = {
         }
       },
       {
-        test: /\.s(a|c)ss$/,
+        test: /\.s?(a|c)ss$/,
         use: extractSass.extract({
           use: [
             {
@@ -58,10 +58,11 @@ module.exports = {
                 sourceMap: true
               }
             },
+            { loader: 'postcss-loader', options: { sourceMap: true } },
             {
               loader: 'sass-loader',
               options: {
-                sourceMap: true
+                sourceMap: true,
               }
             }
           ]
