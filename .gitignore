@@ -11,3 +11,8 @@ nightwatch/node_modules
 nightwatch/dist
 nightwatch/reports
 nightwatch/yarn.lock
+
+db.sqlite3
+.pytest_cache
+yarn-error.log
+_build/
