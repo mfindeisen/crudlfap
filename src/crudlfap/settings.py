@@ -1,16 +1,130 @@
 """
-Hacked and meant to be imported in your project.
+A settings file to import boilerplate from.
 
-::
+.. py:data:: AUTHENTICATION_BACKENDS
+
+    Contains the default django.contrib.auth.backends.ModelBackend and
+    also crudlfap_auth.backends.ViewBackend which will introspect the
+    view's authenticate and allowed_groups variables.
+
+.. py:data:: CRUDLFAP_VIEWS
+
+    List of default views to provide to Routers that were not spawned with any
+    view.
+
+.. py:data:: INSTALLED_APPS
+
+    That list contains both :py:data:`CRUDLFAP_APPS` and :py:data:`DJANGO_APPS`
+    and you can use them as such on a new project:
+
+    .. code-block:: python
+
+        from crudlfap.settings import INSTALLED_APPS
+
+        INSTALLED_APPS = ['yourapp'] + INSTALLED_APPS
+
+.. py:data:: CRUDLFAP_APPS
+
+    List of apps CRUDLFA+ depends on, you can use it as such:
+
+    .. code-block:: python
+
+        from crudlfap.settings import CRUDLFAP_APPS
+
+        INSTALLED_APPS = [
+            'yourapp',
+            'django.contrib.staticfiles',
+            # etc
+        ] + CRUDLFAP_APPS
+
+.. py:data:: DJANGO_APPS
+
+    This list contains all contrib apps from the Django project that CRUDLFA+
+    should depend on. You can use it as such:
+
+    .. code-block:: python
+
+        from crudlfap.settings import CRUDLFAP_APPS, DJANGO_APPS
+
+        INSTALLED_APPS = ['yourapp'] + CRUDLFAP_APPS + DJANGO_APPS
+
+.. py:data:: TEMPLATES
+
+    This list contains both :py:data:`DEFAULT_TEMPLATE_BACKEND` and
+    :py:data:`CRUDLFAP_TEMPLATE_BACKEND` and works out of the box on an empty
+    project. You can add it to your settings file by just importing it:
+
+    .. code-block:: python
+
+        from crudlfap.settings import TEMPLATES
+
+.. py:data:: CRUDLFAP_TEMPLATE_BACKEND
+
+   Configuration for Jinja2 and environment expected by
+   CRUDLFA+ default templates. Add it to your own TEMPLATES setting using
+   import:
+
+    .. code-block:: python
+
+       from crudlfap.settings import CRUDLFAP_TEMPLATE_BACKEND
+
+       TEMPLATES = [
+           # YOUR_BACKEND
+           CRUDLFAP_TEMPLATE_BACKEND,
+       ]
+
+.. py:data:: DEFAULT_TEMPLATE_BACKEND
+
+    Configuration for Django template backend with all builtin context
+    processors. You can use it to define only your third backend as such:
+
+    .. code-block:: python
+
+        from crudlfap.settings import (
+            CRUDLFAP_TEMPLATE_BACKEND,
+            DEFAULT_TEMPLATE_BACKEND,
+        )
+
+        TEMPLATES = [
+           # YOUR_BACKEND
+           CRUDLFAP_TEMPLATE_BACKEND,
+           DEFAULT_TEMPLATE_BACKEND,
+        ]
+
+.. py:data:: DEBUG
+
+    Evaluate ``DEBUG`` env var as boolean, False by default.
+
+.. py:data:: SECRET_KEY
+
+    Get ``SECRET_KEY`` env var, or be ``'notsecret'`` by default.
+
+    .. danger:: Raises an Exception if it finds both SECRET_KEY=notsecret and
+                DEBUG=False.
+
+.. py:data:: ALLOWED_HOSTS
+
+    Split ``ALLOWED_HOSTS`` env var with commas, or be ``['*']`` by default.
+
+    .. danger:: Raises an Exception if it finds both ALLOWED_HOSTS to be
+                ``'*'`` and DEBUG=False.
+
+.. py:data:: MIDDLEWARE
+
+    A default MIDDLEWARE configuration you can import.
+
+.. py:data:: OPTIONAL_APPS
 
     from crudlfap.settings import *
     # [...] your settings
     install_optional(OPTIONAL_APPS, INSTALLED_APPS)
     install_optional(OPTIONAL_MIDDLEWARE, MIDDLEWARE)
+
 """
 
 
 import os
+from pathlib import Path
 
 from crudlfap.conf import install_optional  # noqa
 
@@ -28,42 +142,88 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'notsecret')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(os.environ.get('DEBUG', False))
 
-if SECRET_KEY == 'notsecret' and not DEBUG:
-    raise Exception('SECRET_KEY may not equal "notsecret" if not DEBUG')
+if DEBUG and 'ALLOWED_HOSTS' not in os.environ:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+CRUDLFAP_VIEWS = [
+    'crudlfap.views.generic.CreateView',
+    'crudlfap.views.generic.DeleteView',
+    'crudlfap.views.generic.UpdateView',
+    'crudlfap.views.generic.DetailView',
+    'crudlfap.views.generic.ListView',
+]
 
-# Application definition
 CRUDLFAP_APPS = [
     'crudlfap',
-    'betterforms',
     'bootstrap3',
     'material',
-    'crudlfap_filtertables2',
     'crudlfap_auth',
     'django_filters',
     'django_tables2',
-    'django.contrib.admin',
+    'djwc',
 ]
 
-INSTALLED_APPS = [
-    'django.contrib.auth',
+DJANGO_APPS = [
+    'django.contrib.admin',
     'django.contrib.contenttypes',
+    'django.contrib.auth',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-] + CRUDLFAP_APPS
+]
+
+INSTALLED_APPS = DJANGO_APPS + CRUDLFAP_APPS
 
 # CRUDLFA+ optional dependencies
 OPTIONAL_APPS = [
     # {'debug_toolbar': {'after': 'django.contrib.staticfiles'}},
     {'django_extensions': {'before': 'crudlfap'}},
+    {'collectdir': {'before': 'crudlfap'}},
 ]
+
+DJWC = {
+    'COMPONENTS': {
+        # 'mwc-button': '@material/mwc-button/mwc-button.js',
+        # 'mwc-bottom-app-bar': '@material/mwc-bottom-app-bar/mwc-bottom-app-bar.js',
+        # 'mwc-card': '@material/mwc-card/mwc-card.js',
+        # 'mwc-checkbox': '@material/mwc-checkbox/mwc-checkbox.js',
+        # 'mwc-chip': '@material/mwc-chip/mwc-chip.js',
+        # 'mwc-circular-progress': '@material/mwc-circular-progress/mwc-circular-progress.js',
+        # 'mwc-circular-progress-four-color': '@material/mwc-circular-progress-four-color/mwc-circular-progress-four-color.js',
+        # 'mwc-data-table': '@material/mwc-data-table/mwc-data-table.js',
+        'mwc-dialog': '@material/mwc-dialog/mwc-dialog.js',
+        'mwc-drawer': '@material/mwc-drawer/mwc-drawer.js',
+        'mwc-fab': '@material/mwc-fab/mwc-fab.js',
+        # 'mwc-formfield': '@material/mwc-formfield/mwc-formfield.js',
+        # 'mwc-icon-button-toggle': '@material/mwc-icon-button-toggle/mwc-icon-button-toggle.js',
+        'mwc-icon-button': '@material/mwc-icon-button/mwc-icon-button.js',
+        'mwc-icon': '@material/mwc-icon/mwc-icon.js',
+        # 'mwc-linear-progress': '@material/mwc-linear-progress/mwc-linear-progress.js',
+        'mwc-list': '@material/mwc-list/mwc-list.js',
+        'mwc-list-item': '@material/mwc-list/mwc-list-item.js',
+        # 'mwc-menu': '@material/mwc-menu/mwc-menu.js',
+        # 'mwc-radio': '@material/mwc-radio/mwc-radio.js',
+        # 'mwc-select': '@material/mwc-select/mwc-select.js',
+        # 'mwc-slider': '@material/mwc-slider/mwc-slider.js',
+        # 'mwc-snackbar': '@material/mwc-snackbar/mwc-snackbar.js',
+        # 'mwc-switch': '@material/mwc-switch/mwc-switch.js',
+        # 'mwc-tab-bar': '@material/mwc-tab-bar/mwc-tab-bar.js',
+        # 'mwc-tab': '@material/mwc-tab/mwc-tab.js',
+        # 'mwc-textarea': '@material/mwc-textarea/mwc-textarea.js',
+        # 'mwc-textfield': '@material/mwc-textfield/mwc-textfield.js',
+        # 'mwc-tooltip': '@material/mwc-tooltip/mwc-tooltip.js',
+        'mwc-top-app-bar-fixed': '@material/mwc-top-app-bar-fixed/mwc-top-app-bar-fixed.js',
+        # 'mwc-top-app-bar': '@material/mwc-top-app-bar/mwc-top-app-bar.js',
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'djwc.middleware.StaticMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -73,6 +233,7 @@ MIDDLEWARE = [
 OPTIONAL_MIDDLEWARE = [
     # {'debug_toolbar.middleware.DebugToolbarMiddleware': None}
 ]
+
 INTERNAL_IPS = ('127.0.0.1',)
 
 ROOT_URLCONF = 'crudlfap_example.urls'
@@ -88,9 +249,10 @@ TEMPLATE_CONSTANTS = {
 CRUDLFAP_TEMPLATE_BACKEND = {
     "BACKEND": "django_jinja.backend.Jinja2",
     "APP_DIRS": True,
+    "NAME": "crudlfap",
     "OPTIONS": {
         "app_dirname": "jinja2",
-        "match_extension": ".html",
+        "match_extension": None,
         "context_processors": [
             "django.template.context_processors.debug",
             "django.template.context_processors.request",
@@ -114,16 +276,16 @@ CRUDLFAP_TEMPLATE_BACKEND = {
         "constants": TEMPLATE_CONSTANTS,
         "globals": {
             "pagination_filter_params": "crudlfap.jinja2.pagination_filter_params",  # noqa
-            "crudlfap_site": "crudlfap.crudlfap.site",
+            "crudlfap_site": "crudlfap.site.site",
             "getattr": getattr,
             "str": str,
             "int": int,
             "isinstance": isinstance,
             "type": type,
-            "render_table": "crudlfap_filtertables2.jinja2.render_table",
             "render_form": "crudlfap.jinja2.render_form",
             "render_button": "bootstrap3.forms.render_button",
-            "json": "crudlfap.jinja2.json",
+            "url": "django.urls.reverse",
+            "ryzom": "ryzom.components.component_html",
         },
         "newstyle_gettext": True,
         "bytecode_cache": {
@@ -163,10 +325,15 @@ DEFAULT_TEMPLATE_BACKEND = {
 TEMPLATES = [CRUDLFAP_TEMPLATE_BACKEND, DEFAULT_TEMPLATE_BACKEND]
 LOGIN_REDIRECT_URL = '/'
 LOCALE_PATHS = (
-    os.path.join(BASE_DIR, "locale"),
+    os.path.join(BASE_DIR, 'locale'),
 )
 
 WSGI_APPLICATION = 'crudlfap_example.wsgi.application'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'crudlfap_auth.backends.ViewBackend',
+]
 
 
 # Database
@@ -174,8 +341,11 @@ WSGI_APPLICATION = 'crudlfap_example.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('DB_NAME', os.path.join(BASE_DIR, 'db.sqlite3')),
+        'HOST': os.getenv('DB_HOST'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
     }
 }
 
@@ -216,4 +386,51 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = os.getenv('STATIC_URL', '/static/')
+STATIC_ROOT = os.getenv(
+    'STATIC_ROOT',
+    Path(os.path.dirname(__file__)) / 'static'
+)
+
+UWSGI_SPOOLER_MOUNT = os.getenv('UWSGI_SPOOLER_MOUNT')
+UWSGI_SPOOLER_NAMES = os.getenv('UWSGI_SPOOLER_NAMES', '').split(',')
+if UWSGI_SPOOLER_MOUNT and UWSGI_SPOOLER_NAMES:
+    for name in UWSGI_SPOOLER_NAMES:
+        path = os.path.join(UWSGI_SPOOLER_MOUNT, name)
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+    },
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'loggers': {
+        'django.template': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.db': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        '*': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

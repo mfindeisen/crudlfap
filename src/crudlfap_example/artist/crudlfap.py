@@ -1,4 +1,4 @@
-from crudlfap import crudlfap
+from crudlfap import shortcuts as crudlfap
 
 from .models import Artist
 
@@ -6,6 +6,5 @@ from .models import Artist
 crudlfap.Router(
     Artist,
     fields='__all__',
-    paginate_by=3,
-    allowed=lambda view: True
+    material_icon='record_voice_over',
 ).register()

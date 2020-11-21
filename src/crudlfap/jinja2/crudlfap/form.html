@@ -2,13 +2,12 @@
 
 {% block form_open %}
 <form
-  id="main-form"
+  id="{% block form_id %}main-form{% endblock %}"
   action="{{ request.get_full_path() }}"
   method="post"
   enctype="multipart/form-data"
   data-controller="form"
   data-action="submit->form#submit"
-  {% block form_ajax %}data-ajax=""{% endblock %}
   {% if form is defined %}
   class="{% if request.method == 'POST' and form.errors or form.non_field_errors %}form-invalid{% endif %}"
   {% endif %}
@@ -16,20 +15,34 @@
 {% endblock %}
 
 {% block content %}
-    <div class="form-loading" style="display: none">
-        {{ _('Data upload progress') }}
-        <br />
-        <progress></progress>
-    </div>
-    {{ render_form(form) }}
+  {% if view.object_list|default([])|length %}
+  <ul class="collection">
+    {% for object in view.object_list %}
+    <li class="collection-item">{{ object }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if view.invalid_pks|default(0) %}
+  <div class="orange">
+      <span class="">{{ _('Objects ignored because of missing authorization') }}: {{ view.invalid_pks }}</span>
+  </div>
+  {% endif %}
+
+  {{ render_form(view.form) }}
 {% endblock %}
 
 {% block buttons %}
-    {{ render_button(_(view.urlname or 'Submit'), button_type="submit", button_class="btn-primary") }}
+    {{ render_button(view.title_submit, button_type="submit", button_class="btn-primary") }}
+    {% if request.META.get('HTTP_X_MODAL') %}
+    <a style="position: absolute; right: 1.5rem" class="modal-close waves-effect waves-green btn red">{{ _('cancel') }}</a>
+    {% endif %}
 {% endblock %}
 
 {% block form_close %}
-    <input type="hidden" name="_next" value="{{ request.GET.get('_next', request.POST.get('_next', request.META.get('HTTP_REFERER', '/'))) }}" />
-    {% csrf_token %}
+  {% if view.next_url %}
+    <input type="hidden" name="_next" value="{{ view.next_url }}" />
+  {% endif %}
+  {% csrf_token %}
 </form>
 {% endblock %}

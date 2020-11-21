@@ -1,4 +1,4 @@
-import M from 'materialize-css'
+import M from 'mrsmaterialize'
 import { Controller } from 'stimulus'
 
 export default class extends Controller {
@@ -18,6 +18,7 @@ export default class extends Controller {
   }
 
   get sidenav() {
+    if (this.element === undefined) return undefined
     return document.getElementById(this.element.getAttribute('data-target'))
   }
 

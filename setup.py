@@ -1,42 +1,38 @@
 from setuptools import setup, find_packages
+from setuptools.command.install import install
 import os
-
-
-# Utility function to read the README file.
-# Used for the long_description. It's nice, because now 1) we have a top level
-# README file and 2) it's easier to type in the README file than to put a raw
-# string in below ...
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+import sys
 
 
 setup(
     name='crudlfap',
-    version='0.3.28',
+    setup_requires='setupmeta',
+    versioning='dev',
     description='Rich frontend for generic views with Django',
     author='James Pic',
     author_email='jamespic@gmail.com',
-    url='https://github.com/yourlabs/crudlfap',
+    url='https://yourlabs.io/oss/crudlfap',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     include_package_data=True,
-    long_description=read('README.rst'),
-    license='MIT',
     keywords='django crud',
     install_requires=[
         'jinja2',
+        'django>=2.0,<3.1',
         'django-jinja',
         'django-bootstrap3',
         'django-material',
         'django-tables2',
         'django-filter',
-        'django-betterforms',
         'timeago',
+        'lookupy-unmanaged',
+        # FIXME: Update when ryzom is published to PyPi
+        'ryzom @ git+https://yourlabs.io/oss/ryzom.git#egg=ryzom',
     ],
     tests_require=['tox'],
     extras_require=dict(
         dev=[
-          'django>=2.0',
+          'django-collectdir',
           'django-reversion',
           'django-debug-toolbar',
           'django-extensions',
@@ -62,4 +58,5 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
+    python_requires='>=3',
 )

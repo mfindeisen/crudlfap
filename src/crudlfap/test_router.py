@@ -1,5 +1,4 @@
-from crudlfap import crudlfap
-from crudlfap.crudlfap import site
+from crudlfap import shortcuts as crudlfap
 
 from crudlfap_example.artist.models import Artist
 
@@ -14,6 +13,7 @@ from .router import Router
 
 
 class TestRouter(Router):
+    __test__ = False
     fields = '__all__'
 
 
@@ -76,7 +76,7 @@ def test_app_name_with_model():
 
 
 def test_registry_default():
-    assert Router().registry == site
+    assert Router().registry == crudlfap.site
 
 
 def test_registry():
@@ -86,6 +86,10 @@ def test_registry():
 
 class DetailView(Route, generic.DetailView):
     menus = ['object']
+
+    # Not setting this would require
+    # request.user.has_perm('artist.detail_artist', obj) to pass
+    allowed = True
 
     # This is done by crudlfap generic ObjectView, but here tests django
     # generic views
@@ -119,8 +123,9 @@ def test_urlpattern(router):
 def test_get_menu(router, srf):
     a = Artist(name='a')
     from crudlfap_auth.crudlfap import User
-    srf.user = User.objects.create(is_staff=True)
-    result = router.get_menu('object', srf.get('/'), object=a)
+    srf.user = User.objects.create(is_superuser=True)
+    req = srf.get('/')
+    result = router.get_menu('object', req, object=a)
     assert len(result) == 1
     assert isinstance(result[0], DetailView)
     assert result[0].urlargs == ['a']

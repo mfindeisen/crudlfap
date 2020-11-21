@@ -6,7 +6,7 @@ don't trust myself either :)
 """
 from datetime import timedelta
 
-from crudlfap import crudlfap
+from crudlfap import shortcuts as crudlfap
 
 from crudlfap_auth.crudlfap import User
 
@@ -50,7 +50,9 @@ post1 = pytest.fixture(lambda user0: Post.objects.get_or_create(
 post2 = pytest.fixture(lambda user1: Post.objects.get_or_create(
     owner=user1, name='post2', publish=yesterday)[0])
 
-url = pytest.fixture(lambda name, obj: router()[name].clone(object=obj).url)
+
+def url(name, obj):
+    return crudlfap.site[Post][name].clone(object=obj).url
 
 
 @pytest.mark.django_db
@@ -97,17 +99,22 @@ def test_nonowner_detail_unpublished(router, client, post0, post1):
     assert client.get(url('detail', post1)).status_code == 404
 
 
+@pytest.mark.parametrize('name', ['delete', 'update'])
 @pytest.mark.django_db
-def test_anonymous_edit_published(router, client, post0, post1):
-    for name in ('delete', 'update'):
-        assert client.get(url(name, post0)).status_code == 404
-        assert client.get(url(name, post1)).status_code == 404
+def test_anonymous_edit_published(router, client, post0, post1, name):
+    assert client.get(url(name, post0)).status_code == 404
+    assert client.get(url(name, post1)).status_code == 404
 
 
+@pytest.mark.parametrize('name', ['delete', 'update'])
 @pytest.mark.django_db
-def test_owner_edits(router, client, post0, post1, post2):
+def test_owner_edits(router, client, post0, post1, post2, name):
     client = user_client(client, username='user0')
-    for name in ('delete', 'update'):
-        assert client.get(url(name, post0)).status_code == 200
-        assert client.get(url(name, post1)).status_code == 200
-        assert client.get(url(name, post2)).status_code == 404
+    assert client.get(url(name, post0)).status_code == 200
+    assert client.get(url(name, post1)).status_code == 200
+    assert client.get(url(name, post2)).status_code == 404
+
+    client = user_client(client, username='user1')
+    assert client.get(url(name, post0)).status_code == 404
+    assert client.get(url(name, post1)).status_code == 404
+    assert client.get(url(name, post2)).status_code == 200

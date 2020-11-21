@@ -10,9 +10,8 @@ module.exports = {
       accessKey: process.env.SAUCELABS_TOKEN
     }, function (err, sauceConnectProcess) {
       if (err) {
-        console.error(err.message);
-
-        return;
+        console.error('Sauce Connect Error : ', err.message);
+        process.exit(1);
       }
       console.log('Sauce Connect ready');
       sauceConnectTunnel = sauceConnectProcess;

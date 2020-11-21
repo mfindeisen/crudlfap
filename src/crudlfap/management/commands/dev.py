@@ -7,8 +7,11 @@ import sys
 import django.dispatch
 from django.apps import apps
 from django.conf import settings
+from django.contrib.auth.models import Group
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management import call_command
-from django.core.management.commands.runserver import Command
+from django.core.management.commands.runserver import Command as BaseCommand
+
 
 try:
     import devpy.develop as logger
@@ -24,7 +27,7 @@ def rnpw(num=28):
         string.ascii_uppercase + string.digits) for _ in range(num))
 
 
-class Command(Command):
+class Command(BaseCommand):
     help = 'Start development environment'
 
     def handle(self, *args, **options):
@@ -42,12 +45,18 @@ class Command(Command):
             signal.send(sender=self)
         else:
             options['nothreading'] = True
-            return super().handle(*args, **options)
+            super().handle(*args, **options)
 
     def createusers(self):
         user_model = apps.get_model(settings.AUTH_USER_MODEL)
 
-        def createuser(username, **defaults):
+        def createuser(username, *groups, **defaults):
+            for key in list(defaults.keys()):
+                try:
+                    user_model._meta.get_field(key)
+                except FieldDoesNotExist:
+                    defaults.pop(key)
+
             user, created = user_model.objects.update_or_create(
                 username=username,
                 defaults=defaults,
@@ -64,3 +73,9 @@ class Command(Command):
         createuser('dev', is_staff=True, is_superuser=True)
         createuser('staff', is_staff=True)
         createuser('user')
+
+        for group in Group.objects.all():
+            createuser(
+                group.name.lower().replace(' ', ''),
+                group,
+            )

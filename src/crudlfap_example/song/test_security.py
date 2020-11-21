@@ -5,7 +5,7 @@ It's a bit paranoid, but i'll sleep better with this: i don't trust users, i
 don't trust myself either :)
 """
 
-from crudlfap import crudlfap
+from crudlfap import shortcuts as crudlfap
 
 from crudlfap_auth.crudlfap import User
 
@@ -39,6 +39,7 @@ def song0():
     return Song.objects.get_or_create(
         artist=artist, name='song0', owner=user0)[0]
 
+
 cases = [
     (dict(), False),
     (dict(username='user0'), True),
@@ -52,7 +53,8 @@ cases = [
 @pytest.mark.parametrize('url', ['detail', 'update', 'delete'])
 @pytest.mark.django_db
 def test_object_views_object_for_user(client, userattrs, expected, url, song0):
-    url = crudlfap.site[Song][url].clone(object=song0).url
+    view = crudlfap.site[Song][url].clone(object=song0)
+    url = view.url
     res = user_client(client, **userattrs).get(url)
     assert res.status_code == 200 if expected else 404
 

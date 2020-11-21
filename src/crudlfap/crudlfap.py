@@ -1,31 +1,49 @@
-"""Import everything we expose in crudlfap namespace."""
+from crudlfap.models import Controller, URL
+from crudlfap.router import Router
+from crudlfap.views import generic
 
-from django.utils.module_loading import import_string
 
-from .apps import _installed
-from .factory import Factory
-from .registry import Registry
-from .route import Route
-from .router import Router, Views, ViewsDescriptor
-from .site import site
-from .views.debug import UrlsView
-from .views.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    FormView,
-    HistoryView,
-    ListView,
-    ModelViewMixin,
-    ObjectFormView,
-    ObjectView,
-    ObjectViewMixin,
-    TemplateView,
-    UpdateView,
-    View,
-    ViewMixin,
-)
-from .views.lock import LockViewMixin
+class ControllerRouter(Router):
+    model = Controller
 
-if _installed('crudlfap_filtertables2'):
-    from crudlfap_filtertables2.views import FilterTables2ListView
+    views = [
+        generic.DetailView,
+        generic.ListView.clone(
+            search_fields=(
+                'app',
+                'model',
+            ),
+            table_fields=(
+                'app',
+                'model',
+            ),
+        ),
+    ]
+
+
+# useless ?
+# ControllerRouter().register()
+
+
+class URLRouter(Router):
+    model = URL
+    material_icon = 'link'
+
+    views = [
+        generic.DetailView,
+        generic.ListView.clone(
+            search_fields=(
+                'name',
+                'controller__app',
+                'controller__model',
+            ),
+            table_fields=(
+                'controller',
+                'id',
+                'fullurlpath',
+            ),
+        ),
+    ]
+
+
+URLRouter().register()
